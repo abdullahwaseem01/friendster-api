@@ -12,6 +12,7 @@ cd friendify-api
 ```bash
 npm install 
 ```
+### Environment Variables 
 ### Run API
 ```bash
 npm start

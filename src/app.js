@@ -4,11 +4,13 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const saltRounds = 10;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
@@ -88,25 +90,38 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Post',
     }],
+    token: {
+        type: String,
+        trim: true,
+        unique: true,
+        validate: {
+            validator: (token) => {
+                if(!validator.isJWT(token)) {
+                    throw new Error('Invalid token');
+                }
+            }
+        }
+                
+    }
 
 });
 
 const Post = mongoose.model('Post', postSchema);
 const User = mongoose.model('User', userSchema);
 
-//use multer to storage the image in the database using the post schema
-
 
 app.post('/register', (req, res) => {
     const { username, email, password, name, age, avatar } = req.body;
+    const token = jwt.sign({ username, email, password, name, age, avatar }, process.env.JWT_SECRET);
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (!err) {
             const password = hash;
-            const user = new User({ username, email, password, name, age, avatar });
+            const user = new User({ username, email, password, name, age, avatar, token });
             user.save((error) => {
                 if (!error) {
                     res.status(200).json({
                         message: 'User created successfully',
+                        token: token
                     });
                 } else {
                     res.status(400).json({
@@ -155,6 +170,7 @@ app.get('/profile', (req, res) => {
         }
     });
 });
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
