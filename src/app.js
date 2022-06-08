@@ -123,7 +123,7 @@ const User = mongoose.model('User', userSchema);
 
 app.post('/register', (req, res) => {
     const { username, email, password, name, age, avatar, profileStatus } = req.body;
-    const token = jwt.sign({ username, email, password, name, age, avatar, profileStatus }, process.env.JWT_SECRET);
+    const token = generateToken(username, email, name, age, avatar, profileStatus);
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (!err) {
             const password = hash;
@@ -188,6 +188,41 @@ app.get('/follow/:username', (req, res) => {
     const followingRequest = req.params.username;
     
 });
+
+app.post('/test', authToken, (req, res) => { 
+    res.status(200).json({
+        user: req.body
+    });
+});
+
+async function authToken(req, res, next) {
+    let token = req.query.token || req.body.token || req.headers['authorization'];
+    if (token === req.headers['authorization']) {
+        token = await token.split(' ')[1];
+    }
+
+    if(!token) {
+        res.status(401).json({
+            message: 'No token provided'
+        });
+    } else {
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            if(!err) {
+                req.body = user;
+                next();
+            } else {
+                res.status(403).json({
+                    message: 'Invalid token'
+                });
+            }
+        });
+    }
+}
+
+function generateToken(username, email, name, age, avatar, profileStatus ) {
+    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET);
+}
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
