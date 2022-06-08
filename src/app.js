@@ -78,6 +78,17 @@ const userSchema = new mongoose.Schema({
         data: Buffer,
         contentType: String
     },
+    profileStatus: {
+        type: String,
+        required: true,
+        trim: true,
+        default: 'private'
+    },
+    requests: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        unique: true
+    }],
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -111,12 +122,12 @@ const User = mongoose.model('User', userSchema);
 
 
 app.post('/register', (req, res) => {
-    const { username, email, password, name, age, avatar } = req.body;
-    const token = jwt.sign({ username, email, password, name, age, avatar }, process.env.JWT_SECRET);
+    const { username, email, password, name, age, avatar, profileStatus } = req.body;
+    const token = jwt.sign({ username, email, password, name, age, avatar, profileStatus }, process.env.JWT_SECRET);
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (!err) {
             const password = hash;
-            const user = new User({ username, email, password, name, age, avatar, token });
+            const user = new User({ username, email, password, name, age, avatar, profileStatus, token });
             user.save((error) => {
                 if (!error) {
                     res.status(200).json({
@@ -171,6 +182,12 @@ app.get('/profile', (req, res) => {
     });
 });
 
+app.get('/follow/:username', (req, res) => {
+    const username = req.query.username || req.body.username;
+    const password = req.query.password || req.body.password;
+    const followingRequest = req.params.username;
+    
+});
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
