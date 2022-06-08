@@ -113,6 +113,18 @@ const userSchema = new mongoose.Schema({
             }
         }
                 
+    }, 
+    refreshToken: {
+        type: String,
+        trim: true,
+        unique: true,
+        validate: {
+            validator: (token) => {
+                if(!validator.isJWT(token)) {
+                    throw new Error('Invalid token');
+                }
+            }
+        }
     }
 
 });
@@ -124,15 +136,17 @@ const User = mongoose.model('User', userSchema);
 app.post('/register', (req, res) => {
     const { username, email, password, name, age, avatar, profileStatus } = req.body;
     const token = generateToken(username, email, name, age, avatar, profileStatus);
+    const refreshToken = jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_REFRESH_SECRET);
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (!err) {
             const password = hash;
-            const user = new User({ username, email, password, name, age, avatar, profileStatus, token });
+            const user = new User({ username, email, password, name, age, avatar, profileStatus, token, refreshToken });
             user.save((error) => {
                 if (!error) {
                     res.status(200).json({
                         message: 'User created successfully',
-                        token: token
+                        token: token,
+                        refreshToken: refreshToken
                     });
                 } else {
                     res.status(400).json({
@@ -220,9 +234,45 @@ async function authToken(req, res, next) {
 }
 
 function generateToken(username, email, name, age, avatar, profileStatus ) {
-    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET);
+    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1m' });
 }
 
+app.get('/token', async (req, res) => {
+    let token = req.query.token || req.body.token || req.headers['authorization'];
+    if (token === req.headers['authorization']) {
+        token = await token.split(' ')[1];
+    }
+    if(!token) {
+        res.status(401).json({
+            message: 'No token provided'
+        });
+    } else {
+        User.findOne({ refreshToken: token }, async (err, user) => {
+            if(!err && user) {
+                const newToken = generateToken(user.username, user.email, user.name, user.age, user.avatar, user.profileStatus);
+                user.token = newToken;
+                await user.save((error) => {
+                    if (error){
+                        res.status(500).json({
+                            message: 'Error saving token',
+                            error: error
+                        });
+                    } else {
+                        res.status(200).json({
+                            message: 'Token refreshed',
+                            token: newToken
+                        });
+                    }
+                });
+            } else {
+                res.status(400).json({
+                    message: 'Invalid token'
+                });
+            }
+        });
+    }
+
+});
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
