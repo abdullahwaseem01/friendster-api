@@ -20,7 +20,7 @@ MONGODB_URI=<MONGODB URI>
 SALT_ROUNDS=<INTEGER>
 JWT_SECRET=<STRING>
 JWT_REFRESH_SECRET=<STRING>
-ACCESS_TOKEN_EXPIRY=<SECONDS OR STRING DESCRIBING A TIME SPAN [VERCEL/MS](https://github.com/vercel/ms)>
+ACCESS_TOKEN_EXPIRY=<SECONDS OR STRING DESCRIBING A TIME SPAN WITH VERCEL/MS>
 
 ```
 ### Run API
@@ -33,7 +33,7 @@ JSON web tokens are used to authorize routes and are required to verify requests
 
 Access token expiries can be set via the environment variables. Once expired, access tokens can be refreshed by passing the refresh token to any protected route. As follows:
 
-```bash
+```5
 POST <domain>/<protected_route>
 Authorization: Bearer 
 <refreshToken>
