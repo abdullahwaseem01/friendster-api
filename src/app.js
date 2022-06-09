@@ -248,7 +248,7 @@ async function authenticate(req, res, next) {
 }
 
 function generateToken(username, email, name, age, avatar, profileStatus) {
-    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
 }
 
 app.listen(process.env.PORT, () => {

@@ -27,5 +27,13 @@ JWT_REFRESH_SECRET= <STRING>
 npm start
 ```
 
-### Authorization 
-JSON web tokens are used to authorize routes and are required to verify requests and return the corresponding privileges. Access token are assigned on post requests to the register route and can be passed as bearer tokens or passed within request queries and request bodies. 
+## Authorization 
+JSON web tokens are used to authorize routes and are required to verify requests and return the corresponding privileges. Access tokens and refresh are assigned on post requests to the register route and can be passed as bearer tokens or passed within request queries and request bodies. 
+
+Access token expiries can be set via the environment variables. Once expired, access tokens can be refreshed by passing the refresh token to any protected route. As follows:
+
+```bash
+POST <domain>/<protected_route>
+Authorization: Bearer 
+<refreshToken>
+```
