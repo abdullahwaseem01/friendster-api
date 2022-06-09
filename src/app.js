@@ -107,20 +107,20 @@ const userSchema = new mongoose.Schema({
         unique: true,
         validate: {
             validator: (token) => {
-                if(!validator.isJWT(token)) {
+                if (!validator.isJWT(token)) {
                     throw new Error('Invalid token');
                 }
             }
         }
-                
-    }, 
+
+    },
     refreshToken: {
         type: String,
         trim: true,
         unique: true,
         validate: {
             validator: (token) => {
-                if(!validator.isJWT(token)) {
+                if (!validator.isJWT(token)) {
                     throw new Error('Invalid token');
                 }
             }
@@ -169,9 +169,9 @@ app.post('/register', (req, res) => {
 app.get('/profile', (req, res) => {
     const username = req.query.username || req.body.username;
     const password = req.query.password || req.body.password;
-    User.findOne({ username: username}, (err, storedUser) => {
-        if(!err){
-            if(!storedUser){
+    User.findOne({ username: username }, (err, storedUser) => {
+        if (!err) {
+            if (!storedUser) {
                 res.status(404).json({
                     message: 'User not found'
                 });
@@ -200,79 +200,72 @@ app.get('/follow/:username', (req, res) => {
     const username = req.query.username || req.body.username;
     const password = req.query.password || req.body.password;
     const followingRequest = req.params.username;
-    
+
 });
 
-app.post('/test', authToken, (req, res) => { 
+app.post('/test', authenticate, (req, res) => {
     res.status(200).json({
         user: req.body
     });
 });
 
-async function authToken(req, res, next) {
+
+async function authenticate(req, res, next) {
     let token = req.query.token || req.body.token || req.headers['authorization'];
-    if (token === req.headers['authorization']) {
+    if (token && token === req.headers['authorization']) {
         token = await token.split(' ')[1];
     }
-
-    if(!token) {
-        res.status(401).json({
+    if (!token) {
+        res.status(400).json({
             message: 'No token provided'
         });
     } else {
-        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-            if(!err) {
-                req.body = user;
-                next();
-            } else {
-                res.status(403).json({
-                    message: 'Invalid token'
-                });
-            }
-        });
-    }
-}
-
-function generateToken(username, email, name, age, avatar, profileStatus ) {
-    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1m' });
-}
-
-app.get('/token', async (req, res) => {
-    let token = req.query.token || req.body.token || req.headers['authorization'];
-    if (token === req.headers['authorization']) {
-        token = await token.split(' ')[1];
-    }
-    if(!token) {
-        res.status(401).json({
-            message: 'No token provided'
-        });
-    } else {
-        User.findOne({ refreshToken: token }, async (err, user) => {
-            if(!err && user) {
-                const newToken = generateToken(user.username, user.email, user.name, user.age, user.avatar, user.profileStatus);
-                user.token = newToken;
-                await user.save((error) => {
-                    if (error){
-                        res.status(500).json({
-                            message: 'Error saving token',
-                            error: error
+        jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+            if (err) {
+                jwt.verify(token, process.env.JWT_REFRESH_SECRET, async (err, user) => {
+                    if (err) {
+                        res.status(401).json({
+                            message: 'invalid token',
+                            error: err
                         });
                     } else {
-                        res.status(200).json({
-                            message: 'Token refreshed',
-                            token: newToken
+                        User.findOne({ refreshToken: token }, async (err, user) => {
+                            if (!err && user) {
+                                const newToken = await generateToken(user.username, user.email, user.name, user.age, user.avatar, user.profileStatus);
+                                user.token = newToken;
+                                user.save((error) => {
+                                    if (error) {
+                                        res.status(503).json({
+                                            message: 'Error saving token',
+                                            error: error
+                                        });
+                                    } else {
+                                        res.status(201).json({
+                                            message: 'Token refreshed',
+                                            token: newToken
+                                        });
+                                    }
+                                });
+                            } else {
+                                res.status(401).json({
+                                    message: 'Invalid token'
+                                });
+                            }
                         });
                     }
+
                 });
             } else {
-                res.status(400).json({
-                    message: 'Invalid token'
-                });
+                req.body = result;
+                next();
             }
         });
     }
+}
 
-});
+function generateToken(username, email, name, age, avatar, profileStatus) {
+    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1m' });
+}
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
