@@ -166,47 +166,31 @@ app.post('/register', (req, res) => {
 
 });
 
-app.get('/profile', (req, res) => {
-    const username = req.query.username || req.body.username;
-    const password = req.query.password || req.body.password;
-    User.findOne({ username: username }, (err, storedUser) => {
+app.get('/profile', authenticate, (req, res) => {
+    const username = req.body.username;
+    User.findOne({ username: username }, async (err, storedUser) => {
         if (!err) {
             if (!storedUser) {
                 res.status(404).json({
                     message: 'User not found'
                 });
             } else {
-                bcrypt.compare(password, storedUser.password, (error, results) => {
-                    if (!error && results) {
-                        const user = storedUser.toObject();
-                        delete user.password;
-                        res.status(200).json({
-                            message: 'User found',
-                            user: user
-                        });
-                    } else {
-                        res.status(400).json({
-                            message: 'Authentication failed',
-                            error: error
-                        });
-                    }
+                const user = storedUser.toObject();
+                await delete user.password;
+                await delete user.token 
+                await delete user.refreshToken
+                res.status(200).json({
+                    message: 'User found',
+                    user: user
                 });
             }
+
         }
     });
 });
 
-app.get('/follow/:username', (req, res) => {
-    const username = req.query.username || req.body.username;
-    const password = req.query.password || req.body.password;
-    const followingRequest = req.params.username;
-
-});
-
-app.post('/test', authenticate, (req, res) => {
-    res.status(200).json({
-        user: req.body
-    });
+app.post('/follow/:username', authenticate, (req, res) => {
+    console.log(req.params.username); 
 });
 
 
@@ -264,7 +248,7 @@ async function authenticate(req, res, next) {
 }
 
 function generateToken(username, email, name, age, avatar, profileStatus) {
-    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1m' });
+    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: '1d' });
 }
 
 app.listen(process.env.PORT, () => {
