@@ -4,13 +4,10 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const saltRounds = 10;
+const authenticate = require('./authenticate').authenticate;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
-
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
@@ -189,67 +186,35 @@ app.get('/profile', authenticate, (req, res) => {
     });
 });
 
-app.post('/follow/:username', authenticate, (req, res) => {
-    console.log(req.params.username); 
+app.post('/follow', authenticate, (req, res) =>{
+    const username = req.query.username || req.body.username
+    res.redirect(307, '/follow/' + username);
 });
 
-
-async function authenticate(req, res, next) {
-    let token = req.query.token || req.body.token || req.headers['authorization'];
-    if (token && token === req.headers['authorization']) {
-        token = await token.split(' ')[1];
-    }
-    if (!token) {
-        res.status(400).json({
-            message: 'No token provided'
-        });
-    } else {
-        jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
-            if (err) {
-                jwt.verify(token, process.env.JWT_REFRESH_SECRET, async (err, user) => {
-                    if (err) {
-                        res.status(401).json({
-                            message: 'invalid token',
-                            error: err
-                        });
-                    } else {
-                        User.findOne({ refreshToken: token }, async (err, user) => {
-                            if (!err && user) {
-                                const newToken = await generateToken(user.username, user.email, user.name, user.age, user.avatar, user.profileStatus);
-                                user.token = newToken;
-                                user.save((error) => {
-                                    if (error) {
-                                        res.status(503).json({
-                                            message: 'Error saving token',
-                                            error: error
-                                        });
-                                    } else {
-                                        res.status(201).json({
-                                            message: 'Token refreshed',
-                                            token: newToken
-                                        });
-                                    }
-                                });
-                            } else {
-                                res.status(401).json({
-                                    message: 'Invalid token'
-                                });
-                            }
-                        });
-                    }
-
+app.post('/follow/:username', authenticate, (req, res) => {
+    const requestedUsername = req.params.username;
+    const requestingUsername = req.body.username;
+    User.findOne({username: requestedUsername }, async (err, requestedUser) =>{
+        if(!err){
+            if(!requestedUser){
+                res.status(404).json({
+                    message: 'User not found'
                 });
-            } else {
-                req.body = result;
-                next();
+            } else{
+                const requestedUserFollowers = requestedUser.followers;
+                //search the requested users followers for the requesting user
+                const isFollowing = requestedUserFollowers.find(follower => follower.toString() === requestingUsername);
             }
-        });
-    }
-}
+        } else {
+            res.status(500).json({
+                message: 'unable to find user',
+                error: err
+            });
+        }
+    });
 
-function generateToken(username, email, name, age, avatar, profileStatus) {
-    return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
-}
+});
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
