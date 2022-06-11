@@ -4,10 +4,13 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const jwt = require('jsonwebtoken');
 const authenticate = require('./authenticate').authenticate;
+const generateToken = require('./authenticate').generateToken;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+const saltRounds = Number(process.env.SALT_ROUNDS);
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
@@ -84,7 +87,6 @@ const userSchema = new mongoose.Schema({
     requests: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        unique: true
     }],
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -102,6 +104,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
         unique: true,
+        required: true,
         validate: {
             validator: (token) => {
                 if (!validator.isJWT(token)) {
@@ -115,6 +118,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
         unique: true,
+        required: true,
         validate: {
             validator: (token) => {
                 if (!validator.isJWT(token)) {
@@ -134,10 +138,11 @@ app.post('/register', (req, res) => {
     const { username, email, password, name, age, avatar, profileStatus } = req.body;
     const token = generateToken(username, email, name, age, avatar, profileStatus);
     const refreshToken = jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_REFRESH_SECRET);
-    bcrypt.hash(password, saltRounds, (err, hash) => {
+    bcrypt.hash(password, saltRounds, async (err, hash) => {
         if (!err) {
-            const password = hash;
+            const password = await hash;
             const user = new User({ username, email, password, name, age, avatar, profileStatus, token, refreshToken });
+            console.log(user);
             user.save((error) => {
                 if (!error) {
                     res.status(200).json({
@@ -186,24 +191,75 @@ app.get('/profile', authenticate, (req, res) => {
     });
 });
 
-app.post('/follow', authenticate, (req, res) =>{
+app.patch('/follow', authenticate, (req, res) =>{
     const username = req.query.username || req.body.username
     res.redirect(307, '/follow/' + username);
 });
 
-app.post('/follow/:username', authenticate, (req, res) => {
+app.patch('/follow/:username', authenticate, (req, res) => {
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
     User.findOne({username: requestedUsername }, async (err, requestedUser) =>{
         if(!err){
             if(!requestedUser){
                 res.status(404).json({
-                    message: 'User not found'
+                    message: 'Requested user not found'
                 });
             } else{
-                const requestedUserFollowers = requestedUser.followers;
-                //search the requested users followers for the requesting user
-                const isFollowing = requestedUserFollowers.find(follower => follower.toString() === requestingUsername);
+                User.findOne({username: requestingUsername }, async (error, requestingUser) =>{
+                    if(!err){
+                        if(!requestingUser){
+                            res.status(404).json({
+                                message: 'Requesting user not found'
+                            });
+                        } else{
+                            if(requestedUser.profileStatus === 'private'){
+                                requestedUser.requests.push(requestingUser);
+                                requestedUser.save((error) => {
+                                    if(!error){
+                                        res.status(200).json({
+                                            message: 'Requested user private, request sent'
+                                        });
+                                    } else{
+                                        res.status(500).json({
+                                            message: 'Error sending request',
+                                            error: error
+                                        });
+                                    }
+                            });
+                            } else{
+                                requestedUser.followers.push(requestingUser);
+                                requestingUser.following.push(requestedUser);
+                                requestedUser.save((error) => {
+                                    if(!error){
+                                        requestingUser.save((error) => {
+                                            if(!error){
+                                                res.status(200).json({
+                                                    message: 'Requested user public, following user'
+                                                });
+                                            } else{
+                                                res.status(500).json({
+                                                    message: 'Error following user',
+                                                    error: error
+                                                });
+                                            }
+                                        });
+                                    } else{
+                                        res.status(500).json({
+                                            message: 'Error following user',
+                                            error: error
+                                        });
+                                    }});
+
+                            }
+                        }
+                    } else{
+                        res.status(500).json({
+                            message: 'unable to find user', 
+                            error: error
+                        })
+                    }
+                });
             }
         } else {
             res.status(500).json({

@@ -58,5 +58,5 @@ function generateToken(username, email, name, age, avatar, profileStatus) {
     return jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
 }
 
-// Export the authenticate function
-module.exports = {authenticate};
+
+module.exports = {authenticate, generateToken};
