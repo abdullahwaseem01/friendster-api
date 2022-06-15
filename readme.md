@@ -13,7 +13,7 @@ cd friendify-api
 npm install 
 ```
 ### Environment Variables 
-The following variables require declaration within src/.env
+The following variables require declaration within `src/.env`
 ```bash
 PORT=<PORT>
 MONGODB_URI=<MONGODB URI>
