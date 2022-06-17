@@ -72,6 +72,54 @@ app.get('/profile', authenticate, (req, res) => {
     });
 });
 
+app.get('/profile/followers', authenticate, (req, res) => {
+    const username = req.body.username;
+    User.findOne({ username: username }, async (err, storedUser) => {
+        if (!err) {
+            if (!storedUser) {
+                res.status(404).json({
+                    message: 'User not found'
+                });
+            } else {
+                const followersIDs = storedUser.followers;
+                let followersArray = [];
+                for(indexFollowerID of followersIDs){
+                    const indexedFollower = await User.findById(indexFollowerID);
+                    followersArray.push(indexedFollower);
+                }
+            }
+
+        }
+    });
+});
+
+app.delete('/profile/followers', authenticate, (req, res) => {
+    const username = req.query.username || req.body.username
+    res.redirect(307, '/profile/followers/' + username);
+});
+
+app.delete('/profile/followers/:username', authenticate, (req, res) => {
+    const requestedUsername = req.params.username;
+    const requestingUsername = req.body.username;
+    User.findOne({ username: requestedUsername }, async (err, requestedUser) => {
+        if (!err) {
+            if (!requestedUser) {
+                res.status(404).json({
+                    message: 'Requested user not found'
+                });
+            }
+            else {
+            }
+        }
+        else {
+            res.status(500).json({
+                message: 'unable to find user',
+                error: err
+            });
+        }
+    });
+});
+
 app.patch('/follow', authenticate, (req, res) => {
     const username = req.query.username || req.body.username
     res.redirect(307, '/follow/' + username);
