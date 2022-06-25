@@ -83,10 +83,11 @@ app.get('/profile/followers', authenticate, (req, res) => {
             } else {
                 const followersIDs = storedUser.followers;
                 let followersArray = [];
-                for(indexFollowerID of followersIDs){
+                for (indexFollowerID of followersIDs) {
                     const indexedFollower = await User.findById(indexFollowerID);
                     followersArray.push(indexedFollower);
                 }
+                //send followers array with full document felids and private information removed
             }
 
         }
@@ -109,6 +110,9 @@ app.delete('/profile/followers/:username', authenticate, (req, res) => {
                 });
             }
             else {
+                User.findOne({username :requestingUsername}, (error, requestingUser) =>{
+                    // delete users from eachothers followers/ following
+                });
             }
         }
         else {
@@ -213,6 +217,26 @@ app.patch('/follow/:username', authenticate, (req, res) => {
         }
     });
 
+});
+
+app.get('/feed', authenticate, (req, res) => {
+    const username = req.body.username;
+    User.findOne({ username: username }, async (err, storedUser) => {
+        if (!err) {
+            if (!storedUser) {
+                res.status(404).json({
+                    message: 'User not found'
+                });
+            } else {
+                const storedUserFollowing = storedUser.following;
+                res.status(200).json({
+                    message: 'user feed found',
+                    posts: storedUserFollowing
+                })
+            }
+
+        }
+    });
 });
 
 

@@ -34,7 +34,6 @@ JSON web tokens are used to authorize routes and are required to verify requests
 Access token expiries can be set via the environment variables. Once expired, access tokens can be refreshed by passing the refresh token to any protected route. As follows:
 
 ```5
-POST <domain>/<protected_route>
-Authorization: Bearer 
-<refreshToken>
+curl --location --request GET <domain>/<protected_route> \
+--header 'Authorization: Bearer <refreshToken>'
 ```
