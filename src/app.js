@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const _ = require('lodash');
+const async = require('async');
 const registerRoutes = require('./routes/register.js');
 const authenticate = require('./authenticate').authenticate;
 const User = require('./models/user.js');
@@ -49,11 +50,20 @@ app.get('/profile/followers', authenticate, (req, res) => {
             } else {
                 const followersIDs = storedUser.followers;
                 let followersArray = [];
-                for (indexFollowerID of followersIDs) {
+                for (const indexFollowerID of followersIDs) {
                     const indexedFollower = await User.findById(indexFollowerID);
-                    followersArray.push(indexedFollower);
+                    const indexedFollowerClean = indexedFollower.toObject();
+                    delete indexedFollowerClean.password;
+                    delete indexedFollowerClean.token
+                    delete indexedFollowerClean.refreshToken
+                    delete indexedFollowerClean.requests
+                    followersArray.push(indexedFollowerClean);
+                    
                 }
-                //send followers array with full document felids and private information removed
+                res.status(200).json({
+                    followers: followersArray
+                })
+                
             }
 
         }
