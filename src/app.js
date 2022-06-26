@@ -2,52 +2,18 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const validator = require('validator');
-const jwt = require('jsonwebtoken');
+const _ = require('lodash');
+const registerRoutes = require('./routes/register.js');
 const authenticate = require('./authenticate').authenticate;
-const generateToken = require('./authenticate').generateToken;
 const User = require('./models/user.js');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(registerRoutes);
 const saltRounds = Number(process.env.SALT_ROUNDS);
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
-
-app.post('/register', (req, res) => {
-    const { username, email, password, name, age, avatar, profileStatus } = req.body;
-    const token = generateToken(username, email, name, age, avatar, profileStatus);
-    const refreshToken = jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_REFRESH_SECRET);
-    bcrypt.hash(password, saltRounds, async (err, hash) => {
-        if (!err) {
-            const password = await hash;
-            const user = new User({ username, email, password, name, age, avatar, profileStatus, token, refreshToken });
-            user.save((error) => {
-                if (!error) {
-                    res.status(200).json({
-                        message: 'User created successfully',
-                        token: token,
-                        refreshToken: refreshToken
-                    });
-                } else {
-                    res.status(400).json({
-                        message: 'Error creating user',
-                        error: error
-                    });
-                }
-            });
-        } else {
-            res.status(500).json({
-                message: 'Error hashing password',
-                error: err
-            });
-        }
-
-    });
-
-});
 
 app.get('/profile', authenticate, (req, res) => {
     const username = req.body.username;
@@ -102,7 +68,7 @@ app.delete('/profile/followers', authenticate, (req, res) => {
 app.delete('/profile/followers/:username', authenticate, (req, res) => {
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
-    User.findOne({ username: requestedUsername }, async (err, requestedUser) => {
+    User.findOne({ username: requestedUsername }, (err, requestedUser) => {
         if (!err) {
             if (!requestedUser) {
                 res.status(404).json({
@@ -110,8 +76,49 @@ app.delete('/profile/followers/:username', authenticate, (req, res) => {
                 });
             }
             else {
-                User.findOne({username :requestingUsername}, (error, requestingUser) =>{
-                    // delete users from eachothers followers/ following
+                User.findOne({ username: requestingUsername }, async (error, requestingUser) => {
+                    if (!error) {
+                        if (!requestingUser) {
+                            res.status(404).json({
+                                message: "Requesting user not found"
+                            })
+                        } else {
+                            if (requestedUser.followers.includes(requestingUser._id) && requestingUser.following.includes(requestedUser._id)) {
+                                requestedUser.followers.pull(requestingUser._id)
+                                requestedUser.save(async (error) => {
+                                    if (!error) {
+                                        requestingUser.following.pull(requestedUser._id);
+                                        requestingUser.save((error) => {
+                                            if (!error) {
+                                                res.status(200).json({
+                                                    message: 'Requested user unfollowed'
+                                                })
+                                            } else {
+                                                res.status(500).json({
+                                                    message: 'Error unfollowing',
+                                                    error: error
+                                                });
+                                            }
+                                        })
+                                    } else {
+                                        res.status(500).json({
+                                            message: 'Error removing follower',
+                                            error: error
+                                        });
+                                    }
+                                })
+                            } else {
+                                res.status(400).json({
+                                    message: "Requesting user not following requested user"
+                                })
+                            }
+                        }
+                    } else {
+                        res.status(500).json({
+                            message: "Requesting user not found",
+                            error: error
+                        });
+                    }
                 });
             }
         }
@@ -221,7 +228,7 @@ app.patch('/follow/:username', authenticate, (req, res) => {
 
 app.get('/feed', authenticate, (req, res) => {
     const username = req.body.username;
-    User.findOne({ username: username }, async (err, storedUser) => {
+    User.findOne({ username: username }, (err, storedUser) => {
         if (!err) {
             if (!storedUser) {
                 res.status(404).json({
@@ -243,3 +250,5 @@ app.get('/feed', authenticate, (req, res) => {
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
 });
+
+module.exports = { app };
