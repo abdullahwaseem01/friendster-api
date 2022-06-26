@@ -3,7 +3,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 const User = require('../models/user.js');
-const generateToken = require('../authenticate').generateToken;
+const generateToken = require('../authentication/authenticate.js').generateToken;
 router = express.Router();
 const saltRounds = Number(process.env.SALT_ROUNDS);
 

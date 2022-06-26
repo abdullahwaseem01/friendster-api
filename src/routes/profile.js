@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authenticate = require('../authenticate').authenticate;
+const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 
 router.get('/profile', authenticate, (req, res) => {

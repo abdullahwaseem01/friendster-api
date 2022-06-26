@@ -3,10 +3,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const _ = require('lodash');
-const async = require('async');
 const registerRoutes = require('./routes/register.js');
 const profileRoutes = require('./routes/profile.js');
-const authenticate = require('./authenticate').authenticate;
+const authenticate = require('./authentication/authenticate.js').authenticate;
 const User = require('./models/user.js');
 
 const app = express();
@@ -126,7 +125,7 @@ app.get('/feed', authenticate, (req, res) => {
                 res.status(200).json({
                     message: 'user feed found',
                     posts: storedUserFollowing
-                })
+                });
             }
 
         }
