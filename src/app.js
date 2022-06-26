@@ -1,8 +1,9 @@
 require('dotenv').config();
+require('./database/db.js');
 const express = require('express');
+
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const _ = require('lodash');
+
 const registerRoutes = require('./routes/register.js');
 const profileRoutes = require('./routes/profile.js');
 const authenticate = require('./authentication/authenticate.js').authenticate;
@@ -13,8 +14,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(registerRoutes);
 app.use(profileRoutes);
 
-
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
 
 app.patch('/follow', authenticate, (req, res) => {
