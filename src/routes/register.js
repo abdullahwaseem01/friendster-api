@@ -1,10 +1,13 @@
 require('dotenv').config();
 const express = require('express');
+const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 const User = require('../models/user.js');
+
 const generateToken = require('../authentication/authenticate.js').generateToken;
 router = express.Router();
+router.use(bodyParser.urlencoded({ extended: true }));
 const saltRounds = Number(process.env.SALT_ROUNDS);
 
 router.post('/register', (req, res) => {
@@ -17,8 +20,10 @@ router.post('/register', (req, res) => {
             const user = new User({ username, email, password, name, age, avatar, profileStatus, token, refreshToken });
             user.save((error) => {
                 if (!error) {
+                    const cleanedUser = { username, email, name, age, avatar, profileStatus}
                     res.status(200).json({
                         message: 'User created successfully',
+                        user: cleanedUser,
                         token: token,
                         refreshToken: refreshToken
                     });
