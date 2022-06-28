@@ -1,17 +1,18 @@
 require('dotenv').config();
 require('./database/db.js');
 const express = require('express');
-
 const bodyParser = require('body-parser');
 
 const registerRoutes = require('./routes/register.js');
 const profileRoutes = require('./routes/profile.js');
+const feedRoutes = require('./routes/feed.js');
 const authenticate = require('./authentication/authenticate.js').authenticate;
 const User = require('./models/user.js');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(registerRoutes);
+app.use(feedRoutes);
 app.use(profileRoutes);
 
 
@@ -109,26 +110,6 @@ app.patch('/follow/:username', authenticate, (req, res) => {
         }
     });
 
-});
-
-app.get('/feed', authenticate, (req, res) => {
-    const username = req.body.username;
-    User.findOne({ username: username }, (err, storedUser) => {
-        if (!err) {
-            if (!storedUser) {
-                res.status(404).json({
-                    message: 'User not found'
-                });
-            } else {
-                const storedUserFollowing = storedUser.following;
-                res.status(200).json({
-                    message: 'user feed found',
-                    posts: storedUserFollowing
-                });
-            }
-
-        }
-    });
 });
 
 
