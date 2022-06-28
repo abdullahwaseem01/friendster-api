@@ -59,4 +59,24 @@ router.get('/profile/followers', authenticate, (req, res) => {
 });
 
 
+router.patch('/profile/requests/approve', authenticate, (req, res) => {
+    const username = req.query.username || req.body.username
+    res.redirect(307, '/profile/requests/approve/' + username);
+});
+router.patch('/profile/requests/approve/:username', authenticate, (req, res) => {
+    const requestedUsername = req.params.username;
+    const requestingUsername = req.body.username;
+    //check if passed username is username or user id
+});
+
+router.delete('/profile/requests/delete', authenticate, (req, res) => {
+    const username = req.query.username || req.body.username
+    res.redirect(307, '/profile/requests/delete/' + username);
+});
+router.delete('/profile/requests/delete/:username', authenticate, (req, res) => {
+    const requestedUsername = req.params.username;
+    const requestingUsername = req.body.username;
+    //check if passed username is username or user id
+});
+
 module.exports = router;
