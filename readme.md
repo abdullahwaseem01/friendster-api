@@ -1,6 +1,8 @@
 # Friendster-API
+<p align="center">
+<img src="./assets/register-example.png" alt="Registration Example" width="1000"/>
+<p>
 
-![Registration Example](assets\register-example.png)
 ## Usage 
 
 ### Clone repository 
