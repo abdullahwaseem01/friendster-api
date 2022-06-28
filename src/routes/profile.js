@@ -49,7 +49,7 @@ router.get('/profile/followers', authenticate, (req, res) => {
                 }
                 res.status(200).json({
                     followers: followersArray
-                })
+                });
                 
             }
 
