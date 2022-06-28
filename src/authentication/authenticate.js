@@ -50,6 +50,7 @@ async function authenticate(req, res, next) {
 
                 });
             } else {
+                //check if there is a post and add it to the post
                 req.body = result;
                 next();
             }

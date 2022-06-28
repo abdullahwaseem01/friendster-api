@@ -1,5 +1,4 @@
 const express = require('express');
-const app = require('../app.js');
 const router = express.Router();
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
