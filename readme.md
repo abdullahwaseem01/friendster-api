@@ -1,5 +1,6 @@
 # Friendster-API
 
+![Registration Example](assets\register-example.png)
 ## Usage 
 
 ### Clone repository 
