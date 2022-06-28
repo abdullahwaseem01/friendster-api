@@ -1,11 +1,11 @@
-# Friendify-API
+# Friendster-API
 
 ## Usage 
 
 ### Clone repository 
 ```bash
-git clone https://github.com/abdullahwaseem01/friendify-api.git
-cd friendify-api
+git clone https://github.com/abdullahwaseem01/friendster-api.git
+cd friendster-api
 ```
 ### Install dependencies 
 
