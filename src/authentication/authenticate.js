@@ -5,6 +5,12 @@ const User = require('../models/user.js');
 const Post = require('../models/post.js');
 
 async function authenticate(req, res, next) {
+    const post = {
+        title: req.body.title || req.query.title,
+        content: req.body.content|| req.query.content,
+        caption: req.body.caption || req.query.caption,
+    };
+    const postId = req.body.postId || req.query.postId;
     let token = req.query.token || req.body.token || req.headers['authorization'];
     if (token && token === req.headers['authorization']) {
         token = await token.split(' ')[1];
@@ -50,9 +56,25 @@ async function authenticate(req, res, next) {
 
                 });
             } else {
-                //check if there is a post and add it to the post
-                req.body = result;
-                next();
+                if (req.originalUrl.includes('/post')) {
+                    if (req.method === 'DELETE') {
+                        req.body = {
+                            user: result,
+                            postId: postId,
+                        }
+                        next();
+                    }
+                    else {
+                        req.body = {
+                            user: result,
+                            post: post
+                        }
+                        next();
+                    }
+                } else {
+                    req.body = result;
+                    next();
+                }
             }
         });
     }
@@ -63,4 +85,4 @@ function generateToken(username, email, name, age, avatar, profileStatus) {
 }
 
 
-module.exports = {authenticate, generateToken};
+module.exports = { authenticate, generateToken };
