@@ -98,20 +98,20 @@ router.get('/profile/requests', authenticate, (req, res) => {
                     message: 'User not found'
                 });
             } else {
-                const followingIDs = storedUser.following;
-                let followingArray = [];
-                for (const indexFollowingID of followingIDs) {
-                    const indexedFollowing = await User.findById(indexFollowingID);
-                    const indexedFollowingClean = indexedFollowing.toObject();
-                    delete indexedFollowingClean.password;
-                    delete indexedFollowingClean.token
-                    delete indexedFollowingClean.refreshToken
-                    delete indexedFollowingClean.requests
-                    followingArray.push(indexedFollowingClean);
+                const requestIDs = storedUser.requests;
+                let requestsArray = [];
+                for (const indexRequestID of requestIDs) {
+                    const indexedRequest = await User.findById(indexRequestID);
+                    const indexedRequestClean = indexedRequest.toObject();
+                    delete indexedRequestClean.password;
+                    delete indexedRequestClean.token
+                    delete indexedRequestClean.refreshToken
+                    delete indexedRequestClean.requests
+                    requestsArray.push(indexedRequestClean);
 
                 }
                 res.status(200).json({
-                    following: followingArray
+                    Requests: requestsArray
                 });
 
             }
