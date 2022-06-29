@@ -106,7 +106,7 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                         error: err
                     });
                 } else {
-                    User.findById(requestedUsername, (err, requestedUser) => {
+                    User.findById(requestedUsername, async (err, requestedUser) => {
                         if (!err) {
                             if (!requestedUser) {
                                 res.status(400).json({
@@ -115,7 +115,10 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-
+                                    await requestingUser.requests.pull(requestedUser._id);
+                                    await requestingUser.followers.push(requestedUser._id);
+                                    
+                                    
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
@@ -211,7 +214,7 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-
+                                    
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
