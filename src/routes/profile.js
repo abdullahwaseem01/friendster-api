@@ -67,7 +67,9 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
     if(validator.isMongoId(requestedUsername)){
+        User.findOne({ username: requestingUsername }, (err, requestingUser) => {
 
+        });
     }else{
 
     }
@@ -81,7 +83,9 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
     if(validator.isMongoId(requestedUsername)){
-
+        User.findOne({ username: requestingUsername }, (err, requestingUser) => {
+            
+        });
     }else{
 
     }
