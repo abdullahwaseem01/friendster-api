@@ -114,7 +114,7 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     error: err
                                 });
                             } else {
-                                
+
 
                             }
 
@@ -134,6 +134,41 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
             }
         });
     } else {
+        User.findOne({ username: requestingUsername }, (err, requestingUser) => {
+            if (!err) {
+                if (!requestingUser) {
+                    res.status(400).json({
+                        message: 'unable to locate requesting user',
+                        error: err
+                    });
+                } else {
+                    User.findOne({ username: requestedUsername }, (err, requestedUser) => {
+                        if (!err) {
+                            if (!requestedUser) {
+                                res.status(400).json({
+                                    message: 'unable to locate requested user',
+                                    error: err
+                                });
+                            } else {
+
+
+                            }
+
+                        } else {
+                            res.status(500).json({
+                                message: 'unable to locate requested user',
+                                error: err
+                            });
+                        }
+                    });
+                }
+            } else {
+                res.status(500).json({
+                    message: 'unable to locate requesting user',
+                    error: err
+                });
+            }
+        });
 
     }
 });
@@ -183,6 +218,41 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
             }
         });
     } else {
+        User.findOne({ username: requestingUsername }, (err, requestingUser) => {
+            if (!err) {
+                if (!requestingUser) {
+                    res.status(400).json({
+                        message: 'unable to locate requesting user',
+                        error: err
+                    });
+                } else {
+                    User.findOne({ username: requestedUsername }, (err, requestedUser) => {
+                        if (!err) {
+                            if (!requestedUser) {
+                                res.status(400).json({
+                                    message: 'unable to locate requested user',
+                                    error: err
+                                });
+                            } else {
+
+
+                            }
+
+                        } else {
+                            res.status(500).json({
+                                message: 'unable to locate requested user',
+                                error: err
+                            });
+                        }
+                    });
+                }
+            } else {
+                res.status(500).json({
+                    message: 'unable to locate requesting user',
+                    error: err
+                });
+            }
+        });
 
     }
 });
