@@ -68,7 +68,14 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
     const requestingUsername = req.body.username;
     if(validator.isMongoId(requestedUsername)){
         User.findOne({ username: requestingUsername }, (err, requestingUser) => {
+            if(!err){
 
+            } else{
+                res.status(500).json({
+                    message: 'unable to locate requesting user',
+                    error: err
+                });
+            }
         });
     }else{
 
@@ -84,7 +91,14 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
     const requestingUsername = req.body.username;
     if(validator.isMongoId(requestedUsername)){
         User.findOne({ username: requestingUsername }, (err, requestingUser) => {
-            
+            if(!err){
+
+            } else{
+                res.status(500).json({
+                    message: 'unable to locate requesting user',
+                    error: err
+                });
+            }
         });
     }else{
 
