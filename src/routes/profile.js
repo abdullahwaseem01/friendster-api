@@ -89,6 +89,37 @@ router.get('/profile/following', authenticate, (req, res) => {
     });
 });
 
+router.get('/profile/requests', authenticate, (req, res) => {
+    const username = req.body.username;
+    User.findOne({ username: username }, async (err, storedUser) => {
+        if (!err) {
+            if (!storedUser) {
+                res.status(404).json({
+                    message: 'User not found'
+                });
+            } else {
+                const followingIDs = storedUser.following;
+                let followingArray = [];
+                for (const indexFollowingID of followingIDs) {
+                    const indexedFollowing = await User.findById(indexFollowingID);
+                    const indexedFollowingClean = indexedFollowing.toObject();
+                    delete indexedFollowingClean.password;
+                    delete indexedFollowingClean.token
+                    delete indexedFollowingClean.refreshToken
+                    delete indexedFollowingClean.requests
+                    followingArray.push(indexedFollowingClean);
+
+                }
+                res.status(200).json({
+                    following: followingArray
+                });
+
+            }
+
+        }
+    });
+});
+
 
 router.patch('/profile/requests/approve', authenticate, (req, res) => {
     const username = req.query.username || req.body.username
