@@ -8,7 +8,16 @@ const Post = require('../models/post.js');
 router.post('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
-    // find user inject server-side post schema data and to user posts array
+    User.findOne({ username: username }, (err, user) => {
+        if(!err){
+
+        } else{
+            res.status(500).json({
+                message: 'Error finding user',
+                error: err
+            });
+        }
+    });
 });
 
 router.delete('/post', authenticate, (req, res) => {
