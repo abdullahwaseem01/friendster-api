@@ -4,7 +4,6 @@ const validator = require('validator');
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 const Post = require('../models/post.js');
-const { findOneAndDelete } = require('../models/user.js');
 
 router.post('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
