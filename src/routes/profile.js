@@ -145,9 +145,7 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                         message: 'follow request not found'
                                     });
                                 }
-
                             }
-
                         } else {
                             res.status(500).json({
                                 message: 'unable to locate requested user',
