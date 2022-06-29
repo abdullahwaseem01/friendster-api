@@ -120,7 +120,7 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            res.status.json({
+                                            res.status(200).json({
                                                 message: 'request deleted/ requested user following requested user'
                                             })
                                         } else {
@@ -176,8 +176,8 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            res.status.json({
-                                                message: 'request deleted/ requested user following requested user'
+                                            res.status(200).json({
+                                                message: 'request deleted. Requested user following requested user'
                                             })
                                         } else {
                                             res.status(500).json({
