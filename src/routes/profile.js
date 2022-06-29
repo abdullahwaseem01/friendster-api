@@ -120,12 +120,12 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            requestingUser.save((err) =>{
-                                                if(!err){
+                                            requestedUser.save((err) => {
+                                                if (!err) {
                                                     res.status(200).json({
                                                         message: 'request deleted. requested user following requested user'
                                                     });
-                                                } else{
+                                                } else {
                                                     res.status(500).json({
                                                         message: 'unable to complete updates',
                                                         error: err
@@ -184,12 +184,12 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            requestingUser.save((err) =>{
-                                                if(!err){
+                                            requestedUser.save((err) => {
+                                                if (!err) {
                                                     res.status(200).json({
                                                         message: 'request deleted. requested user following requesting user'
                                                     });
-                                                } else{
+                                                } else {
                                                     res.status(500).json({
                                                         message: 'unable to complete updates',
                                                         error: err
@@ -246,7 +246,7 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                         error: err
                     });
                 } else {
-                    User.findById(requestedUsername, (err, requestedUser) => {
+                    User.findById(requestedUsername, async (err, requestedUser) => {
                         if (!err) {
                             if (!requestedUser) {
                                 res.status(400).json({
@@ -255,15 +255,25 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-
+                                    await requestingUser.requests.pull(requestedUser._id);
+                                    requestingUser.save(async (err) => {
+                                        if (!err) {
+                                            res.status(200).json({
+                                                message: 'request deleted'
+                                            });
+                                        } else {
+                                            res.status(500).json({
+                                                message: 'unable to complete updates',
+                                                error: err
+                                            });
+                                        }
+                                    });
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
                                     })
                                 }
-
                             }
-
                         } else {
                             res.status(500).json({
                                 message: 'unable to locate requested user',
@@ -289,7 +299,7 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                         error: err
                     });
                 } else {
-                    User.findOne({ username: requestedUsername }, (err, requestedUser) => {
+                    User.findOne({ username: requestedUsername }, async (err, requestedUser) => {
                         if (!err) {
                             if (!requestedUser) {
                                 res.status(400).json({
@@ -298,11 +308,23 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-
+                                    await requestingUser.requests.pull(requestedUser._id);
+                                    requestingUser.save(async (err) => {
+                                        if (!err) {
+                                            res.status(200).json({
+                                                message: 'request deleted'
+                                            });
+                                        } else {
+                                            res.status(500).json({
+                                                message: 'unable to complete updates',
+                                                error: err
+                                            });
+                                        }
+                                    });
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
-                                    })
+                                    });
                                 }
 
                             }
