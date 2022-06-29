@@ -1,8 +1,6 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const User = require('../models/user.js');
-const Post = require('../models/post.js');
 
 async function authenticate(req, res, next) {
     const post = {
