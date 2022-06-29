@@ -117,12 +117,23 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                 if (requestingUser.requests.includes(requestedUser._id)) {
                                     await requestingUser.requests.pull(requestedUser._id);
                                     await requestingUser.followers.push(requestedUser._id);
-                                    
-                                    
+                                    requestingUser.save(async (err) => {
+                                        if (!err) {
+                                            await requestedUser.following.push(requestingUser._id);
+                                            res.status.json({
+                                                message: 'request deleted/ requested user following requested user'
+                                            })
+                                        } else {
+                                            res.status(500).json({
+                                                message: 'unable to complete updates',
+                                                error: err
+                                            });
+                                        }
+                                    });
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
-                                    })
+                                    });
                                 }
 
                             }
@@ -151,7 +162,7 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                         error: err
                     });
                 } else {
-                    User.findOne({ username: requestedUsername }, (err, requestedUser) => {
+                    User.findOne({ username: requestedUsername }, async (err, requestedUser) => {
                         if (!err) {
                             if (!requestedUser) {
                                 res.status(400).json({
@@ -160,7 +171,21 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-
+                                    await requestingUser.requests.pull(requestedUser._id);
+                                    await requestingUser.followers.push(requestedUser._id);
+                                    requestingUser.save(async (err) => {
+                                        if (!err) {
+                                            await requestedUser.following.push(requestingUser._id);
+                                            res.status.json({
+                                                message: 'request deleted/ requested user following requested user'
+                                            })
+                                        } else {
+                                            res.status(500).json({
+                                                message: 'unable to complete updates',
+                                                error: err
+                                            });
+                                        }
+                                    });
 
                                 } else {
                                     res.status(404).json({
@@ -214,7 +239,7 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                 });
                             } else {
                                 if (requestingUser.requests.includes(requestedUser._id)) {
-                                    
+
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
