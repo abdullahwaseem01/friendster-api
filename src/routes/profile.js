@@ -120,9 +120,19 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            res.status(200).json({
-                                                message: 'request deleted/ requested user following requested user'
-                                            })
+                                            requestingUser.save((err) =>{
+                                                if(!err){
+                                                    res.status(200).json({
+                                                        message: 'request deleted. requested user following requested user'
+                                                    });
+                                                } else{
+                                                    res.status(500).json({
+                                                        message: 'unable to complete updates',
+                                                        error: err
+                                                    });
+                                                }
+                                            });
+
                                         } else {
                                             res.status(500).json({
                                                 message: 'unable to complete updates',
@@ -176,9 +186,18 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     requestingUser.save(async (err) => {
                                         if (!err) {
                                             await requestedUser.following.push(requestingUser._id);
-                                            res.status(200).json({
-                                                message: 'request deleted. Requested user following requested user'
-                                            })
+                                            requestingUser.save((err) =>{
+                                                if(!err){
+                                                    res.status(200).json({
+                                                        message: 'request deleted. requested user following requesting user'
+                                                    });
+                                                } else{
+                                                    res.status(500).json({
+                                                        message: 'unable to complete updates',
+                                                        error: err
+                                                    });
+                                                }
+                                            });
                                         } else {
                                             res.status(500).json({
                                                 message: 'unable to complete updates',
@@ -186,7 +205,6 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                             });
                                         }
                                     });
-
                                 } else {
                                     res.status(404).json({
                                         message: 'follow request not found'
