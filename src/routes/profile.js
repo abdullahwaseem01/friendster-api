@@ -80,7 +80,7 @@ router.get('/profile/following', authenticate, (req, res) => {
                     
                 }
                 res.status(200).json({
-                    followers: followingArray
+                    following: followingArray
                 });
                 
             }
