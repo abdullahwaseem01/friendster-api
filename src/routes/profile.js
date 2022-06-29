@@ -114,7 +114,13 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     error: err
                                 });
                             } else {
+                                if (requestingUser.requests.includes(requestedUser._id)) {
 
+                                } else {
+                                    res.status(404).json({
+                                        message: 'follow request not found'
+                                    })
+                                }
 
                             }
 
@@ -150,7 +156,14 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                                     error: err
                                 });
                             } else {
+                                if (requestingUser.requests.includes(requestedUser._id)) {
 
+
+                                } else {
+                                    res.status(404).json({
+                                        message: 'follow request not found'
+                                    })
+                                }
 
                             }
 
@@ -197,7 +210,13 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                     error: err
                                 });
                             } else {
+                                if (requestingUser.requests.includes(requestedUser._id)) {
 
+                                } else {
+                                    res.status(404).json({
+                                        message: 'follow request not found'
+                                    })
+                                }
 
                             }
 
@@ -234,10 +253,15 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                                     error: err
                                 });
                             } else {
+                                if (requestingUser.requests.includes(requestedUser._id)) {
 
+                                } else {
+                                    res.status(404).json({
+                                        message: 'follow request not found'
+                                    })
+                                }
 
                             }
-
                         } else {
                             res.status(500).json({
                                 message: 'unable to locate requested user',
