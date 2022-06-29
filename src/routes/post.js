@@ -4,20 +4,25 @@ const validator = require('validator');
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 const Post = require('../models/post.js');
+const { findOneAndDelete } = require('../models/user.js');
 
 router.post('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
-    User.findOne({ username: username }, (err, user) => {
-        if(!err){
-
-        } else{
-            res.status(500).json({
-                message: 'Error finding user',
-                error: err
+    User.findOneAndUpdate({ username: username }, { $push: { posts: post } }, { new: true }, (error, user) => {
+        if (!error) {
+            res.status(200).json({
+                message: 'Post created successfully',
+                post: post
+            });
+        } else {
+            res.status(400).json({
+                message: 'Error creating post',
+                error: error
             });
         }
-    });
+    }
+    );
 });
 
 router.delete('/post', authenticate, (req, res) => {
@@ -28,16 +33,19 @@ router.delete('/post', authenticate, (req, res) => {
             message: 'Invalid post id'
         });
     } else{
-        User.findOne({ username: username }, (err, user) => {
-            if(!err){
-    
-            } else{
+        User.findOneAndUpdate({ username: username }, { $pull: { posts: { _id: postId } } }, { new: true }, (error, user) => {
+            if (!error) {
+                res.status(200).json({
+                    message: 'Post deleted successfully'
+                });
+            } else {
                 res.status(500).json({
-                    message: 'Error finding user',
-                    error: err
+                    message: 'Error deleting post',
+                    error: error
                 });
             }
-        });
+        }
+        );
     }
 });
 
