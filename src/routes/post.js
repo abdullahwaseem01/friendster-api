@@ -28,7 +28,16 @@ router.delete('/post', authenticate, (req, res) => {
             message: 'Invalid post id'
         });
     } else{
-        //find post by id and delete
+        User.findOne({ username: username }, (err, user) => {
+            if(!err){
+    
+            } else{
+                res.status(500).json({
+                    message: 'Error finding user',
+                    error: err
+                });
+            }
+        });
     }
 });
 
