@@ -46,12 +46,12 @@ router.get('/profile/followers', authenticate, (req, res) => {
                     delete indexedFollowerClean.refreshToken
                     delete indexedFollowerClean.requests
                     followersArray.push(indexedFollowerClean);
-                    
+
                 }
                 res.status(200).json({
                     followers: followersArray
                 });
-                
+
             }
 
         }
@@ -77,12 +77,12 @@ router.get('/profile/following', authenticate, (req, res) => {
                     delete indexedFollowingClean.refreshToken
                     delete indexedFollowingClean.requests
                     followingArray.push(indexedFollowingClean);
-                    
+
                 }
                 res.status(200).json({
                     following: followingArray
                 });
-                
+
             }
 
         }
@@ -97,27 +97,43 @@ router.patch('/profile/requests/approve', authenticate, (req, res) => {
 router.patch('/profile/requests/approve/:username', authenticate, (req, res) => {
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
-    if(validator.isMongoId(requestedUsername)){
+    if (validator.isMongoId(requestedUsername)) {
         User.findOne({ username: requestingUsername }, (err, requestingUser) => {
-            if(!err){
-                if(!requestingUser){
+            if (!err) {
+                if (!requestingUser) {
                     res.status(400).json({
                         message: 'unable to locate requesting user',
                         error: err
                     });
-                }else{
-                  User.findById(requestedUsername, (err, requestedUser) => {
+                } else {
+                    User.findById(requestedUsername, (err, requestedUser) => {
+                        if (!err) {
+                            if (!requestedUser) {
+                                res.status(400).json({
+                                    message: 'unable to locate requested user',
+                                    error: err
+                                });
+                            } else {
+                                
 
-                  });
+                            }
+
+                        } else {
+                            res.status(500).json({
+                                message: 'unable to locate requested user',
+                                error: err
+                            });
+                        }
+                    });
                 }
-            } else{
+            } else {
                 res.status(500).json({
                     message: 'unable to locate requesting user',
                     error: err
                 });
             }
         });
-    }else{
+    } else {
 
     }
 });
@@ -129,27 +145,44 @@ router.delete('/profile/requests/delete', authenticate, (req, res) => {
 router.delete('/profile/requests/delete/:username', authenticate, (req, res) => {
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
-    if(validator.isMongoId(requestedUsername)){
+    if (validator.isMongoId(requestedUsername)) {
         User.findOne({ username: requestingUsername }, (err, requestingUser) => {
-            if(!err){
-                if(!requestingUser){
+            if (!err) {
+                if (!requestingUser) {
                     res.status(400).json({
                         message: 'unable to locate requesting user',
                         error: err
                     });
-                }else{
+                } else {
                     User.findById(requestedUsername, (err, requestedUser) => {
-                    
-                  });
+                        if (!err) {
+                            if (!requestedUser) {
+                                res.status(400).json({
+                                    message: 'unable to locate requested user',
+                                    error: err
+                                });
+                            } else {
+
+
+                            }
+
+                        } else {
+                            res.status(500).json({
+                                message: 'unable to locate requested user',
+                                error: err
+                            });
+                        }
+
+                    });
                 }
-            } else{
+            } else {
                 res.status(500).json({
                     message: 'unable to locate requesting user',
                     error: err
                 });
             }
         });
-    }else{
+    } else {
 
     }
 });
