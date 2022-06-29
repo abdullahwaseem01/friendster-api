@@ -106,7 +106,9 @@ router.patch('/profile/requests/approve/:username', authenticate, (req, res) => 
                         error: err
                     });
                 }else{
-                    
+                  User.findById(requestedUsername, (err, requestedUser) => {
+
+                  });
                 }
             } else{
                 res.status(500).json({
@@ -136,7 +138,9 @@ router.delete('/profile/requests/delete/:username', authenticate, (req, res) => 
                         error: err
                     });
                 }else{
+                    User.findById(requestedUsername, (err, requestedUser) => {
                     
+                  });
                 }
             } else{
                 res.status(500).json({
