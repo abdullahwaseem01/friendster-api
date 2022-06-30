@@ -12,13 +12,13 @@ router.post('/post', authenticate, async (req, res) => {
     const image = await fs.readFileSync(post.content);
     User.findOne({ username: username }, (err, user) => {
         if (!err) {
-            //define new post as a constant and save it seprately
-            new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id }, (err, post) => {
-               post.save((err, post) => {
+            const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
+            newPost.save((err, post) => {
                 if (!err) {
                     user.posts.push(post._id);
-                    user.save((err) => {
+                    user.save(async (err) => {
                         if (!err) {
+                            post.owner = user;
                             res.status(201).json({
                                 message: 'Post created',
                                 post: post
@@ -40,9 +40,8 @@ router.post('/post', authenticate, async (req, res) => {
                 }
             });
 
-            });
-
-        } else {
+        }
+        else {
             res.status(500).json({
                 message: 'Error finding user',
                 error: err
