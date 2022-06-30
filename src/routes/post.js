@@ -16,9 +16,14 @@ router.post('/post', authenticate, async (req, res) => {
             newPost.save((err, post) => {
                 if (!err) {
                     user.posts.push(post._id);
-                    user.save(async (err) => {
+                    user.save(async (err, user) => {
                         if (!err) {
-                            post.owner = user;
+                            //redefine the post object to filter data
+                            const cleanedUser = user.toObject();
+                            delete cleanedUser.password;
+                            delete cleanedUser.refreshToken;
+                            delete cleanedUser.token;
+                            post.owner = await cleanedUser;
                             res.status(201).json({
                                 message: 'Post created',
                                 post: post
