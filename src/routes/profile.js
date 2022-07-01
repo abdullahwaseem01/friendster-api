@@ -125,6 +125,7 @@ router.get('/profile/requests', authenticate, (req, res) => {
     });
 });
 
+
 router.patch('/profile/requests/approve', authenticate, (req, res) => {
     const username = req.query.username || req.body.username
     res.redirect(307, '/profile/requests/approve/' + username);
