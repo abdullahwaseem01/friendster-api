@@ -11,7 +11,7 @@ router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
     if (!post.content) {
-        res.status(400).json({ message: 'Post content is required to be a valid path' });
+        res.status(400).json({ message: 'Post content is required to be a valid image file name' });
     } else {
         try{
         const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
@@ -23,15 +23,16 @@ router.post('/post', authenticate, async (req, res) => {
                         user.posts.push(post._id);
                         user.save(async (err, user) => {
                             if (!err) {
-                                //redefine the post object to filter data
-                                const cleanedUser = user.toObject();
+                                let cleanPost = post.toObject();
+                                const cleanedUser = await user.toObject();
                                 delete cleanedUser.password;
                                 delete cleanedUser.refreshToken;
                                 delete cleanedUser.token;
-                                post.owner = await cleanedUser;
+                                delete cleanedUser.requests;
+                                cleanPost.owner = cleanedUser;
                                 res.status(201).json({
                                     message: 'Post created',
-                                    post: post
+                                    post: cleanPost
                                 });
                             } else {
                                 res.status(503).json({
