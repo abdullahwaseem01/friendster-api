@@ -10,51 +10,55 @@ const Post = require('../models/post.js');
 router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
-    const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
-    User.findOne({ username: username }, (err, user) => {
-        if (!err) {
-            const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
-            newPost.save((err, post) => {
-                if (!err) {
-                    user.posts.push(post._id);
-                    user.save(async (err, user) => {
-                        if (!err) {
-                            //redefine the post object to filter data
-                            const cleanedUser = user.toObject();
-                            delete cleanedUser.password;
-                            delete cleanedUser.refreshToken;
-                            delete cleanedUser.token;
-                            post.owner = await cleanedUser;
-                            res.status(201).json({
-                                message: 'Post created',
-                                post: post
-                            });
-                        } else {
-                            res.status(503).json({
-                                message: 'Error saving post',
-                                error: err
-                            });
+    if (!post.content) {
+        res.status(400).json({ message: 'Post content is required' });
+    } else {
+        const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
+        User.findOne({ username: username }, (err, user) => {
+            if (!err) {
+                const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
+                newPost.save((err, post) => {
+                    if (!err) {
+                        user.posts.push(post._id);
+                        user.save(async (err, user) => {
+                            if (!err) {
+                                //redefine the post object to filter data
+                                const cleanedUser = user.toObject();
+                                delete cleanedUser.password;
+                                delete cleanedUser.refreshToken;
+                                delete cleanedUser.token;
+                                post.owner = await cleanedUser;
+                                res.status(201).json({
+                                    message: 'Post created',
+                                    post: post
+                                });
+                            } else {
+                                res.status(503).json({
+                                    message: 'Error saving post',
+                                    error: err
+                                });
 
-                        }
-                    });
-                }
-                else {
-                    res.status(503).json({
-                        message: 'Error saving post',
-                        error: err
-                    });
-                }
-            });
+                            }
+                        });
+                    }
+                    else {
+                        res.status(503).json({
+                            message: 'Error saving post',
+                            error: err
+                        });
+                    }
+                });
 
-        }
-        else {
-            res.status(500).json({
-                message: 'Error finding user',
-                error: err
-            });
-        }
+            }
+            else {
+                res.status(500).json({
+                    message: 'Error finding user',
+                    error: err
+                });
+            }
 
-    });
+        });
+    }
 
 });
 
