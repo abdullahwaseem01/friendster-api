@@ -8,6 +8,35 @@ const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 const Post = require('../models/post.js');
 
+router.get('/post', authenticate, (req, res) => {
+    const username = req.body.user.username;
+    User.findOne({ username: username }, async (err, storedUser) => {
+        if (!err) {
+            if (!storedUser) {
+                res.status(404).json({
+                    message: 'User found'
+                });
+            } else {
+                const postIDs = storedUser.posts;
+                let postsArray = [];
+                for (const indexPostID of postIDs) {
+                    const indexedPost = await Post.findById(indexPostID);
+                    const indexedPostClean = indexedPost.toObject();
+                    delete indexedPostClean.owner;
+                    postsArray.push(indexedPostClean);
+
+                }
+                res.status(200).json({
+                    Posts: postsArray
+                });
+
+            }
+
+        }
+    });
+    
+});
+
 router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
