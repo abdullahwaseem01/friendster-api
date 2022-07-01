@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validator = require('validator');
+const path = require('path');
 const fs = require('fs');
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
@@ -10,6 +11,7 @@ router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
     const image = await fs.readFileSync(post.content);
+    console.log(path.join(__dirname, '..', post.content));
     User.findOne({ username: username }, (err, user) => {
         if (!err) {
             const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
