@@ -4,12 +4,12 @@ const router = express.Router();
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 
-router.put('/follow', authenticate, (req, res) => {
+router.patch('/follow', authenticate, (req, res) => {
     const username = req.query.username || req.body.username
     res.redirect(307, '/follow/' + username);
 });
 
-router.put('/follow/:username', authenticate, (req, res) => {
+router.patch('/follow/:username', authenticate, (req, res) => {
     const requestedUsername = req.params.username;
     const requestingUsername = req.body.username;
     User.findOne({ username: requestedUsername }, async (err, requestedUser) => {

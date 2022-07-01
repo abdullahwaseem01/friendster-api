@@ -27,6 +27,11 @@ router.get('/profile', authenticate, (req, res) => {
     });
 });
 
+router.patch('/profile', authenticate, (req, res) => {});
+
+router.delete('/profile', authenticate, (req, res) => { });
+    
+
 router.get('/profile/followers', authenticate, (req, res) => {
     const username = req.body.username;
     User.findOne({ username: username }, async (err, storedUser) => {
@@ -119,7 +124,6 @@ router.get('/profile/requests', authenticate, (req, res) => {
         }
     });
 });
-
 
 router.patch('/profile/requests/approve', authenticate, (req, res) => {
     const username = req.query.username || req.body.username
