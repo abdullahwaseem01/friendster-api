@@ -11,8 +11,9 @@ router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
     if (!post.content) {
-        res.status(400).json({ message: 'Post content is required' });
+        res.status(400).json({ message: 'Post content is required to be a valid path' });
     } else {
+        try{
         const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
         User.findOne({ username: username }, (err, user) => {
             if (!err) {
@@ -57,7 +58,14 @@ router.post('/post', authenticate, async (req, res) => {
                 });
             }
 
-        });
+        }); 
+        } catch(err) {
+            res.status(500).json({
+                message: 'Error reading file',
+                error: err
+            });
+        }
+        
     }
 
 });
