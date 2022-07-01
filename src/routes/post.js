@@ -10,8 +10,7 @@ const Post = require('../models/post.js');
 router.post('/post', authenticate, async (req, res) => {
     const username = req.body.user.username;
     const post = req.body.post;
-    const image = await fs.readFileSync(post.content);
-    console.log(path.join(__dirname, '..', '..', post.content));
+    const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
     User.findOne({ username: username }, (err, user) => {
         if (!err) {
             const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
