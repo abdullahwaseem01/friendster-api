@@ -30,10 +30,10 @@ router.get('/profile', authenticate, (req, res) => {
 
 router.patch('/profile', authenticate, (req, res) => { });
 
-router.delete('/profile', authenticate, (req, res) => {
+router.delete('/profile', authenticate, async (req, res) => {
     const username = req.body.username
     User.findOne({ username: username }, async (err, storedUser) => {
-        if (!err || storedUser) {
+        if (!err && storedUser) {
             const followers = storedUser.followers
             const following = storedUser.following
             const posts = storedUser.posts
@@ -45,6 +45,10 @@ router.delete('/profile', authenticate, (req, res) => {
                 for (const followingID of following) {
                     indexedFollowing = await User.findById(followingID);
                     indexedFollowing.followers.pull(storedUser._id)
+                }
+                for (const postID of posts) {
+                    indexedPost = await Post.findById(postID);
+                    indexedPost.remove();
                 }
             } catch (err) {
                 res.status(400).json({
