@@ -3,7 +3,7 @@ const validator = require('validator');
 const router = express.Router();
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
-const Post = require('../models/user.js');
+const Post = require('../models/post.js');
 
 router.get('/profile', authenticate, (req, res) => {
     const username = req.body.username;
@@ -47,6 +47,7 @@ router.delete('/profile', authenticate, async (req, res) => {
                 await indexedFollowing.followers.pull(storedUser._id);
                 indexedFollowing.save();
             }
+            Post.deleteMany({ owner: storedUser._id })
         } else {
             res.status(500).json({
                 message: "error finding user",
