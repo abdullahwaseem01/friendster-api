@@ -27,10 +27,34 @@ router.get('/profile', authenticate, (req, res) => {
     });
 });
 
-router.patch('/profile', authenticate, (req, res) => {});
+router.patch('/profile', authenticate, (req, res) => { });
 
-router.delete('/profile', authenticate, (req, res) => { });
-    
+router.delete('/profile', authenticate, (req, res) => {
+    const username = req.body.username
+    User.findOne({ username: username }, (err, storedUser) => {
+        if (!err || !storedUser) {
+            const followers = storedUser.followers
+            const posts = storedUser.posts
+            try {
+                for (const followerID of followers) {
+                    indexedFollower = User.findById(followerID);
+                    console.log(indexedFollower.following)
+                }
+            } catch (err) {
+                res.status(400).json({
+                    message: "error deleting user",
+                    error: err
+                }); 
+            }
+        } else {
+            res.status(500).json({
+                message: "error finding user",
+                error: err
+            }); 
+        }
+    });
+});
+
 
 router.get('/profile/followers', authenticate, (req, res) => {
     const username = req.body.username;
