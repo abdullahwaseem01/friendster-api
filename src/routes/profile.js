@@ -37,30 +37,21 @@ router.delete('/profile', authenticate, async (req, res) => {
             const followers = storedUser.followers
             const following = storedUser.following
             const posts = storedUser.posts
-            try {
-                for (const followerID of followers) {
-                    indexedFollower = await User.findById(followerID);
-                    indexedFollower.following.pull(storedUser._id)
-                }
-                for (const followingID of following) {
-                    indexedFollowing = await User.findById(followingID);
-                    indexedFollowing.followers.pull(storedUser._id)
-                }
-                for (const postID of posts) {
-                    indexedPost = await Post.findById(postID);
-                    indexedPost.remove();
-                }
-            } catch (err) {
-                res.status(400).json({
-                    message: "error deleting user",
-                    error: err
-                }); 
+            for (const followerID of followers) {
+                indexedFollower = await User.findById(followerID);
+                await indexedFollower.following.pull(storedUser._id);
+                indexedFollower.save();
+            }
+            for (const followingID of following) {
+                indexedFollowing = await User.findById(followingID);
+                await indexedFollowing.followers.pull(storedUser._id);
+                indexedFollowing.save();
             }
         } else {
             res.status(500).json({
                 message: "error finding user",
                 error: err
-            }); 
+            });
         }
     });
 });
