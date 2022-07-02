@@ -3,6 +3,7 @@ const validator = require('validator');
 const router = express.Router();
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
+const Post = require('../models/user.js');
 
 router.get('/profile', authenticate, (req, res) => {
     const username = req.body.username;
@@ -31,15 +32,17 @@ router.patch('/profile', authenticate, (req, res) => { });
 
 router.delete('/profile', authenticate, (req, res) => {
     const username = req.body.username
-    User.findOne({ username: username }, (err, storedUser) => {
-        if (!err || !storedUser) {
+    User.findOne({ username: username }, async (err, storedUser) => {
+        if (!err || storedUser) {
             const followers = storedUser.followers
+            const following = storedUser.following
             const posts = storedUser.posts
             try {
                 for (const followerID of followers) {
-                    indexedFollower = User.findById(followerID);
-                    console.log(indexedFollower.following)
+                    indexedFollower = await User.findById(followerID);
+                    indexedFollower.following.pull(storedUser._id)
                 }
+                Post
             } catch (err) {
                 res.status(400).json({
                     message: "error deleting user",
