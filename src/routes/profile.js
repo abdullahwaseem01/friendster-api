@@ -42,7 +42,10 @@ router.delete('/profile', authenticate, (req, res) => {
                     indexedFollower = await User.findById(followerID);
                     indexedFollower.following.pull(storedUser._id)
                 }
-                Post
+                for (const followingID of following) {
+                    indexedFollowing = await User.findById(followingID);
+                    indexedFollowing.followers.pull(storedUser._id)
+                }
             } catch (err) {
                 res.status(400).json({
                     message: "error deleting user",
