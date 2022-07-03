@@ -28,7 +28,27 @@ router.get('/profile', authenticate, (req, res) => {
     });
 });
 
-router.patch('/profile', authenticate, (req, res) => { });
+router.patch('/profile', authenticate, (req, res) => { 
+    const username = req.body.username
+    const userUpdate = req.body.userUpdate
+    try{
+        User.findOneAndUpdate({ username: username }, userUpdate, (err, user) => {
+            if (!err && user) {
+                res.status(200).json({
+                    message: 'User updated'
+                });
+            } else {
+                res.status(404).json({
+                    message: 'User not found'
+                });
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            message: 'User not found'
+        });
+    }
+});
 
 router.delete('/profile', authenticate, async (req, res) => {
     const username = req.body.username

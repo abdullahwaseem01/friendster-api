@@ -9,6 +9,7 @@ async function authenticate(req, res, next) {
         caption: req.body.caption || req.query.caption,
     };
     const postId = req.body.postId || req.query.postId;
+    const userUpdate = req.body || req.query;
     let token = req.query.token || req.body.token || req.headers['authorization'];
     if (token && token === req.headers['authorization']) {
         token = await token.split(' ')[1];
@@ -69,7 +70,14 @@ async function authenticate(req, res, next) {
                         }
                         next();
                     }
-                } else {
+                }  else if(req.originalUrl ==='/profile' && req.method === 'PATCH') {
+                    req.body = {
+                        user: result,
+                        userUpdate: userUpdate
+                    }
+                    next();
+
+                }else {
                     req.body = result;
                     next();
                 }
