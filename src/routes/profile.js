@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt')
 const express = require('express');
 const validator = require('validator');
 const router = express.Router();
@@ -28,29 +29,52 @@ router.get('/profile', authenticate, (req, res) => {
     });
 });
 
-router.patch('/profile', authenticate, async (req, res) => { 
+router.patch('/profile', authenticate, async (req, res) => {
     const username = req.body.user.username
     const userUpdate = req.body.userUpdate
-    try{
-        const updatedUser = await User.findOneAndUpdate({ username: username }, userUpdate, {new: true});
-        if (updatedUser) {
-            const updatedUserClean = updatedUser.toObject();
-            delete updatedUserClean.password;
-            delete updatedUserClean.token;
-            delete updatedUserClean.refreshToken;
-            delete updatedUserClean.requests;
-            res.status(200).json({
-                message: 'User updated',
-                user: updatedUserClean
+    try {
+        if (userUpdate.password) {
+            bcrypt.hash(userUpdate.password, 10, async (err, hash) => {
+                userUpdate.password = hash;
+                const updatedUser = await User.findOneAndUpdate({ username: username }, userUpdate, { new: true });
+                if (updatedUser) {
+                    const updatedUserClean = updatedUser.toObject();
+                    delete updatedUserClean.password;
+                    delete updatedUserClean.token;
+                    delete updatedUserClean.refreshToken;
+                    delete updatedUserClean.requests;
+                    res.status(200).json({
+                        message: 'User updated',
+                        user: updatedUserClean
+                    });
+                } else {
+                    res.status(404).json({
+                        message: 'error updating user'
+                    });
+                }
             });
         } else {
-            res.status(404).json({
-                message: 'error updating user'
-            });
+            const updatedUser = await User.findOneAndUpdate({ username: username }, userUpdate, { new: true });
+            if (updatedUser) {
+                const updatedUserClean = updatedUser.toObject();
+                delete updatedUserClean.password;
+                delete updatedUserClean.token;
+                delete updatedUserClean.refreshToken;
+                delete updatedUserClean.requests;
+                res.status(200).json({
+                    message: 'User updated',
+                    user: updatedUserClean
+                });
+            } else {
+                res.status(404).json({
+                    message: 'error updating user'
+                });
+            }
         }
     } catch (err) {
         res.status(400).json({
-            message: 'User not found'
+            message: 'User not found',
+            error: err
         });
     }
 });

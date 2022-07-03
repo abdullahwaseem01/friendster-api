@@ -8,13 +8,12 @@ const User = require('../models/user.js');
 const generateToken = require('../authentication/authenticate.js').generateToken;
 router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
-const saltRounds = Number(process.env.SALT_ROUNDS);
 
 router.post('/register', (req, res) => {
     const { username, email, password, name, age, avatar, profileStatus } = req.body;
     const token = generateToken(username, email, name, age, avatar, profileStatus);
     const refreshToken = jwt.sign({ username, email, name, age, avatar, profileStatus }, process.env.JWT_REFRESH_SECRET);
-    bcrypt.hash(password, saltRounds, async (err, hash) => {
+    bcrypt.hash(password, 10, async (err, hash) => {
         if (!err) {
             const password = await hash;
             const user = new User({ username, email, password, name, age, avatar, profileStatus, token, refreshToken });
