@@ -47,7 +47,14 @@ router.delete('/profile', authenticate, async (req, res) => {
                 await indexedFollowing.followers.pull(storedUser._id);
                 indexedFollowing.save();
             }
-            Post.deleteMany({ owner: storedUser._id })
+            for (const postID of posts) {
+                Post.findByIdAndRemove(postID, (err, post) => {
+                    if (err) {
+                        throw err;
+                    }
+                }
+                );
+            }
         } else {
             res.status(500).json({
                 message: "error finding user",
