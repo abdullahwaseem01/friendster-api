@@ -34,26 +34,40 @@ router.delete('/profile', authenticate, async (req, res) => {
     const username = req.body.username
     User.findOne({ username: username }, async (err, storedUser) => {
         if (!err && storedUser) {
-            const followers = storedUser.followers
-            const following = storedUser.following
-            const posts = storedUser.posts
-            for (const followerID of followers) {
-                indexedFollower = await User.findById(followerID);
-                await indexedFollower.following.pull(storedUser._id);
-                indexedFollower.save();
-            }
-            for (const followingID of following) {
-                indexedFollowing = await User.findById(followingID);
-                await indexedFollowing.followers.pull(storedUser._id);
-                indexedFollowing.save();
-            }
-            for (const postID of posts) {
-                Post.findByIdAndRemove(postID, (err, post) => {
+            try {
+                const followers = storedUser.followers
+                const following = storedUser.following
+                const posts = storedUser.posts
+                for (const followerID of followers) {
+                    indexedFollower = await User.findById(followerID);
+                    await indexedFollower.following.pull(storedUser._id);
+                    indexedFollower.save();
+                }
+                for (const followingID of following) {
+                    indexedFollowing = await User.findById(followingID);
+                    await indexedFollowing.followers.pull(storedUser._id);
+                    indexedFollowing.save();
+                }
+                for (const postID of posts) {
+                    Post.findByIdAndRemove(postID, (err, post) => {
+                        if (err) {
+                            throw err;
+                        }
+                    });
+                }
+                User.findByIdAndRemove(storedUser._id, (err, user) => {
                     if (err) {
                         throw err;
                     }
-                }
-                );
+                });
+                res.status(200).json({
+                    message: 'User deleted'
+                });
+            } catch (err) {
+                res.status(500).json({
+                    message: 'Error deleting user',
+                    error: err
+                });
             }
         } else {
             res.status(500).json({
