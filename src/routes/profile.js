@@ -28,21 +28,26 @@ router.get('/profile', authenticate, (req, res) => {
     });
 });
 
-router.patch('/profile', authenticate, (req, res) => { 
-    const username = req.body.username
+router.patch('/profile', authenticate, async (req, res) => { 
+    const username = req.body.user.username
     const userUpdate = req.body.userUpdate
     try{
-        User.findOneAndUpdate({ username: username }, userUpdate, (err, user) => {
-            if (!err && user) {
-                res.status(200).json({
-                    message: 'User updated'
-                });
-            } else {
-                res.status(404).json({
-                    message: 'User not found'
-                });
-            }
-        });
+        const updatedUser = await User.findOneAndUpdate({ username: username }, userUpdate, {new: true});
+        if (updatedUser) {
+            const updatedUserClean = updatedUser.toObject();
+            delete updatedUserClean.password;
+            delete updatedUserClean.token;
+            delete updatedUserClean.refreshToken;
+            delete updatedUserClean.requests;
+            res.status(200).json({
+                message: 'User updated',
+                user: updatedUserClean
+            });
+        } else {
+            res.status(404).json({
+                message: 'error updating user'
+            });
+        }
     } catch (err) {
         res.status(400).json({
             message: 'User not found'
