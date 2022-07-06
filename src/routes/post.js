@@ -7,7 +7,6 @@ const _ = require('lodash');
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 const Post = require('../models/post.js');
-const { apply } = require('async');
 
 router.get('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
@@ -35,7 +34,7 @@ router.get('/post', authenticate, (req, res) => {
 
         }
     });
-    
+
 });
 
 router.post('/post', authenticate, async (req, res) => {
@@ -45,60 +44,60 @@ router.post('/post', authenticate, async (req, res) => {
     if (!post.content || (!_.toLower(post.content).endsWith('.jpg') && !_.toLower(post.content).endsWith('.png') && !_.toLower(post.content).endsWith('.jpg'))) {
         res.status(400).json({ message: 'Post content is required to be a valid image file name' });
     } else {
-        try{
-        const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
-        User.findOne({ username: username }, (err, user) => {
-            if (!err) {
-                const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
-                newPost.save((err, post) => {
-                    if (!err) {
-                        user.posts.push(post._id);
-                        user.save(async (err, user) => {
-                            if (!err) {
-                                let cleanPost = post.toObject();
-                                const cleanedUser = await user.toObject();
-                                delete cleanedUser.password;
-                                delete cleanedUser.refreshToken;
-                                delete cleanedUser.token;
-                                delete cleanedUser.requests;
-                                cleanPost.owner = cleanedUser;
-                                res.status(201).json({
-                                    message: 'Post created',
-                                    post: cleanPost
-                                });
-                            } else {
-                                res.status(503).json({
-                                    message: 'Error saving post',
-                                    error: err
-                                });
+        try {
+            const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
+            User.findOne({ username: username }, (err, user) => {
+                if (!err) {
+                    const newPost = new Post({ title: post.title, content: image, caption: post.caption, createdAt: Date.now(), owner: user._id });
+                    newPost.save((err, post) => {
+                        if (!err) {
+                            user.posts.push(post._id);
+                            user.save(async (err, user) => {
+                                if (!err) {
+                                    let cleanPost = post.toObject();
+                                    const cleanedUser = await user.toObject();
+                                    delete cleanedUser.password;
+                                    delete cleanedUser.refreshToken;
+                                    delete cleanedUser.token;
+                                    delete cleanedUser.requests;
+                                    cleanPost.owner = cleanedUser;
+                                    res.status(201).json({
+                                        message: 'Post created',
+                                        post: cleanPost
+                                    });
+                                } else {
+                                    res.status(503).json({
+                                        message: 'Error saving post',
+                                        error: err
+                                    });
 
-                            }
-                        });
-                    }
-                    else {
-                        res.status(503).json({
-                            message: 'Error saving post',
-                            error: err
-                        });
-                    }
-                });
+                                }
+                            });
+                        }
+                        else {
+                            res.status(503).json({
+                                message: 'Error saving post',
+                                error: err
+                            });
+                        }
+                    });
 
-            }
-            else {
-                res.status(500).json({
-                    message: 'Error finding user',
-                    error: err
-                });
-            }
+                }
+                else {
+                    res.status(500).json({
+                        message: 'Error finding user',
+                        error: err
+                    });
+                }
 
-        }); 
-        } catch(err) {
+            });
+        } catch (err) {
             res.status(500).json({
                 message: 'Error reading file',
                 error: err
             });
         }
-        
+
     }
 
 });
@@ -127,10 +126,43 @@ router.delete('/post', authenticate, (req, res) => {
     }
 });
 
-router.patch('/post', authenticate, (req, res) => { 
+router.patch('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
     const postId = req.body.postId;
     const post = req.body.post;
-    
+    if (!post.content || (!_.toLower(post.content).endsWith('.jpg') && !_.toLower(post.content).endsWith('.png') && !_.toLower(post.content).endsWith('.jpg'))) {
+        res.status(400).json({ message: 'Post content is required to be a valid image file name' });
+    }
+    else {
+        try {
+            const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
+            post.content = image;
+            User.findOne({ username: username }, (err, user) => {
+                if (user.posts.includes(postId)) {
+                    const updatedPost = await Post.findOneAndUpdate({ _id: postId }, post, { new: true });
+                    if (updatedPost) {
+                        res.status(200).json({
+                            message: 'Post updated successfully',
+                            post: updatedPost
+                        });
+                    } else {
+                        res.status(500).json({
+                            message: 'Error updating post',
+                            error: err
+                        });
+                    }
+                } else {
+                    res.status(404).json({
+                        message: 'Post not found'
+                    });
+                }
+            });
+        } catch (err) {
+            res.status(500).json({
+                message: 'Error finding user',
+                error: err
+            });
+        }
+    }
 });
 module.exports = router;
