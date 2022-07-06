@@ -7,6 +7,7 @@ const _ = require('lodash');
 const authenticate = require('../authentication/authenticate.js').authenticate;
 const User = require('../models/user.js');
 const Post = require('../models/post.js');
+const { apply } = require('async');
 
 router.get('/post', authenticate, (req, res) => {
     const username = req.body.user.username;
@@ -126,4 +127,10 @@ router.delete('/post', authenticate, (req, res) => {
     }
 });
 
+router.patch('/post', authenticate, (req, res) => { 
+    const username = req.body.user.username;
+    const postId = req.body.postId;
+    const post = req.body.post;
+    
+});
 module.exports = router;

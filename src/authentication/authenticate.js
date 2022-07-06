@@ -62,6 +62,13 @@ async function authenticate(req, res, next) {
                             postId: postId,
                         }
                         next();
+                    } else if(req.method === 'PATCH') {
+                        req.body ={
+                            user: result,
+                            postId: postId,
+                            post: post
+                        }
+                        next();
                     }
                     else {
                         req.body = {
