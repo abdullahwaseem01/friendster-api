@@ -98,4 +98,5 @@ function generateToken(username, email, name, age, avatar, profileStatus) {
 }
 
 
+
 module.exports = { authenticate, generateToken };
