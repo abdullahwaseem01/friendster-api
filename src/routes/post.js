@@ -135,9 +135,9 @@ router.patch('/post', authenticate, (req, res) => {
     }
     else {
         try {
-            const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
-            post.content = image;
-            User.findOne({ username: username }, (err, user) => {
+            User.findOne({ username: username }, async (err, user) => {
+                const image = await fs.readFileSync(path.join(__dirname, '..', '..', post.content));
+                post.content = image;
                 if (user.posts.includes(postId)) {
                     const updatedPost = await Post.findOneAndUpdate({ _id: postId }, post, { new: true });
                     if (updatedPost) {
