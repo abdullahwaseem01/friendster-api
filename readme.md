@@ -1,4 +1,5 @@
 # Friendster-API
+a user management and interactions REST API with accounts, user permissions and content management
 <p align="center">
 <img src="./assets/register-example.png" alt="Registration Example" width="1000"/>
 <p>
